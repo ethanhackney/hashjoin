@@ -268,7 +268,9 @@ static string read_line(const char *path, FILE *fp)
 
         // keep reading characters until we hit
         // end of file or a newline. TODO: this could
-        // be inefficient but it is easy
+        // be inefficient but stdio does its own buffering,
+        // so i don't even know if implementing it myself would
+        // be faster. id have to do all the things they do anyways
         while ((c = fgetc(fp)) != EOF) {
                 line += c;
                 if (c == '\n')
