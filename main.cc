@@ -282,68 +282,22 @@ static string read_line(const char *path, FILE *fp)
         return line;
 }
 
-// i know there are probably nice c++ ways of doing this
 static vector<string> fields(const string &line)
 {
-        // this is some hackery because fields() needs (right now) a
-        // c style string, but line.c_str() returns a const char *
-        // and fields() needs to be able to modify the string.
-        auto dup = strdup(line.c_str());
-        if (dup == NULL)
-                err(EX_SOFTWARE, "strdup(%s)", line.c_str());
+        vector<string> f;
+        string cur;
+        cur = "";
 
-        // every word of line gets an entry in fields
-        vector<string> fields;
-
-        // this is a visual of what happens here
-        //
-        // lets say dup is "what is in a name?"
-        //
-        // this is the state when we first start:
-        //
-        //            "what is in a name?"
-        // base -------^
-        // end --------|
-        //
-        // this is the state after the first word is finished:
-        //
-        //            "what is in a name?"
-        // base -------^   ^
-        // end ------------|
-        //
-        // this triggers the isspace() test and we now take
-        // the word between base and end and add it to fields
-        //
-        // this is the state of base after:
-        //
-        //            "what is in a name?"
-        // base ------------^
-        // end ------------^
-        //
-        char *base = dup;
-        char *end = base;
-        for (; *end; ++end) {
-                if (!isspace(*end))
-                        continue;
-
-                // is this a non-empty string?
-                if ((end - base) != 0) {
-                        // nul terminate cause this std::string
-                        // constructor takes a nul terminated string
-                        *end = 0;
-                        fields.push_back({base});
+        for (auto c : line) {
+                if (!isspace(c)) {
+                        cur += c;
+                } else if (cur.size() > 0) {
+                        f.push_back(cur);
+                        cur = "";
                 }
-
-                // move base past this word
-                base = end + 1;
         }
-        // if there are leftovers
-        if ((end - base) != 0)
-                fields.push_back({base});
 
-        free(dup);
-        dup = NULL;
-        return fields;
+        return f;
 }
 
 static size_t attr_index(const vector<string> &attrs, const string &attr)
